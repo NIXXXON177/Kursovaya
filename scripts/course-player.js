@@ -1,235 +1,249 @@
 // scripts/course-player.js
 class CoursePlayer {
-    constructor() {
-        this.currentCourse = null;
-        this.currentModuleIndex = 0;
-        this.init();
-    }
+	constructor() {
+		this.currentCourse = null
+		this.currentModuleIndex = 0
+		this.init()
+	}
 
-    init() {
-        this.loadCourseData();
-        this.renderCoursePlayer();
-        this.setupEventListeners();
-    }
+	init() {
+		this.loadCourseData()
+		this.renderCoursePlayer()
+		this.setupEventListeners()
+	}
 
-    loadCourseData() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const courseId = urlParams.get('id');
-        
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        this.currentCourse = userData?.courses?.find(c => c.id == courseId);
-        
-        if (!this.currentCourse) {
-            this.showError('Курс не найден');
-            return;
-        }
-    }
+	loadCourseData() {
+		const urlParams = new URLSearchParams(window.location.search)
+		const courseId = urlParams.get('id')
 
-    renderCoursePlayer() {
-        const container = document.getElementById('coursePlayer');
-        if (!container || !this.currentCourse) return;
+		const userData = JSON.parse(localStorage.getItem('userData'))
+		this.currentCourse = userData?.courses?.find(c => c.id == courseId)
 
-        // Очищаем контейнер
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
+		if (!this.currentCourse) {
+			this.showError('Курс не найден')
+			return
+		}
+	}
 
-        // Создаем основную структуру
-        const playerLayout = this.createPlayerLayout();
-        container.appendChild(playerLayout);
+	renderCoursePlayer() {
+		const container = document.getElementById('coursePlayer')
+		if (!container || !this.currentCourse) return
 
-        // Загружаем первый модуль
-        this.loadModule(this.currentModuleIndex);
-    }
+		// Очищаем контейнер
+		while (container.firstChild) {
+			container.removeChild(container.firstChild)
+		}
 
-    createPlayerLayout() {
-        const layout = document.createElement('div');
-        layout.className = 'course-player-layout';
+		// Создаем основную структуру
+		const playerLayout = this.createPlayerLayout()
+		container.appendChild(playerLayout)
 
-        const sidebar = this.createSidebar();
-        const content = this.createContentArea();
+		// Загружаем первый модуль
+		this.loadModule(this.currentModuleIndex)
+	}
 
-        layout.appendChild(sidebar);
-        layout.appendChild(content);
+	createPlayerLayout() {
+		const layout = document.createElement('div')
+		layout.className = 'course-player-layout'
 
-        return layout;
-    }
+		const sidebar = this.createSidebar()
+		const content = this.createContentArea()
 
-    createSidebar() {
-        const sidebar = document.createElement('div');
-        sidebar.className = 'course-sidebar';
+		layout.appendChild(sidebar)
+		layout.appendChild(content)
 
-        const courseTitle = document.createElement('h2');
-        courseTitle.className = 'sidebar-title';
-        courseTitle.textContent = this.currentCourse.title;
+		return layout
+	}
 
-        const modulesList = document.createElement('div');
-        modulesList.className = 'modules-list';
+	createSidebar() {
+		const sidebar = document.createElement('div')
+		sidebar.className = 'course-sidebar'
 
-        this.currentCourse.modules.forEach((module, index) => {
-            const moduleItem = this.createModuleItem(module, index);
-            modulesList.appendChild(moduleItem);
-        });
+		const courseTitle = document.createElement('h2')
+		courseTitle.className = 'sidebar-title'
+		courseTitle.textContent = this.currentCourse.title
 
-        const progressSection = this.createProgressSection();
+		const modulesList = document.createElement('div')
+		modulesList.className = 'modules-list'
 
-        sidebar.appendChild(courseTitle);
-        sidebar.appendChild(modulesList);
-        sidebar.appendChild(progressSection);
+		this.currentCourse.modules.forEach((module, index) => {
+			const moduleItem = this.createModuleItem(module, index)
+			modulesList.appendChild(moduleItem)
+		})
 
-        return sidebar;
-    }
+		const progressSection = this.createProgressSection()
 
-    createModuleItem(module, index) {
-        const item = document.createElement('div');
-        item.className = `module-item ${module.completed ? 'completed' : ''} ${index === this.currentModuleIndex ? 'active' : ''}`;
-        
-        const icon = document.createElement('span');
-        icon.className = 'module-icon';
-        icon.textContent = module.completed ? '✓' : (module.type === 'video' ? '🎥' : '📖');
+		sidebar.appendChild(courseTitle)
+		sidebar.appendChild(modulesList)
+		sidebar.appendChild(progressSection)
 
-        const content = document.createElement('div');
-        content.className = 'module-content';
+		return sidebar
+	}
 
-        const title = document.createElement('div');
-        title.className = 'module-title';
-        title.textContent = module.title;
+	createModuleItem(module, index) {
+		const item = document.createElement('div')
+		item.className = `module-item ${module.completed ? 'completed' : ''} ${
+			index === this.currentModuleIndex ? 'active' : ''
+		}`
 
-        const meta = document.createElement('div');
-        meta.className = 'module-meta';
-        meta.textContent = `${module.type === 'video' ? 'Видео' : 'Текст'} • ${module.duration}`;
+		const icon = document.createElement('span')
+		icon.className = 'module-icon'
+		icon.textContent = module.completed
+			? '✓'
+			: module.type === 'video'
+			? '🎥'
+			: '📖'
 
-        content.appendChild(title);
-        content.appendChild(meta);
+		const content = document.createElement('div')
+		content.className = 'module-content'
 
-        item.appendChild(icon);
-        item.appendChild(content);
+		const title = document.createElement('div')
+		title.className = 'module-title'
+		title.textContent = module.title
 
-        item.addEventListener('click', () => {
-            this.loadModule(index);
-        });
+		const meta = document.createElement('div')
+		meta.className = 'module-meta'
+		meta.textContent = `${module.type === 'video' ? 'Видео' : 'Текст'} • ${
+			module.duration
+		}`
 
-        return item;
-    }
+		content.appendChild(title)
+		content.appendChild(meta)
 
-    createProgressSection() {
-        const section = document.createElement('div');
-        section.className = 'progress-section';
+		item.appendChild(icon)
+		item.appendChild(content)
 
-        const progressText = document.createElement('div');
-        progressText.className = 'progress-text';
-        
-        const completedModules = this.currentCourse.modules.filter(m => m.completed).length;
-        progressText.textContent = `Прогресс: ${completedModules}/${this.currentCourse.modules.length}`;
+		item.addEventListener('click', () => {
+			this.loadModule(index)
+		})
 
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
+		return item
+	}
 
-        const progressFill = document.createElement('div');
-        progressFill.className = 'progress-fill';
-        progressFill.style.width = `${(completedModules / this.currentCourse.modules.length) * 100}%`;
+	createProgressSection() {
+		const section = document.createElement('div')
+		section.className = 'progress-section'
 
-        const continueBtn = document.createElement('button');
-        continueBtn.className = 'btn btn-primary continue-btn';
-        continueBtn.textContent = 'Продолжить обучение';
-        continueBtn.addEventListener('click', () => {
-            this.loadNextUncompletedModule();
-        });
+		const progressText = document.createElement('div')
+		progressText.className = 'progress-text'
 
-        const testBtn = document.createElement('button');
-        testBtn.className = 'btn btn-secondary test-btn';
-        testBtn.textContent = 'Пройти тест';
-        testBtn.addEventListener('click', () => {
-            this.startTest();
-        });
+		const completedModules = this.currentCourse.modules.filter(
+			m => m.completed
+		).length
+		progressText.textContent = `Прогресс: ${completedModules}/${this.currentCourse.modules.length}`
 
-        progressBar.appendChild(progressFill);
-        section.appendChild(progressText);
-        section.appendChild(progressBar);
-        section.appendChild(continueBtn);
-        
-        if (completedModules === this.currentCourse.modules.length) {
-            section.appendChild(testBtn);
-        }
+		const progressBar = document.createElement('div')
+		progressBar.className = 'progress-bar'
 
-        return section;
-    }
+		const progressFill = document.createElement('div')
+		progressFill.className = 'progress-fill'
+		progressFill.style.width = `${
+			(completedModules / this.currentCourse.modules.length) * 100
+		}%`
 
-    createContentArea() {
-        const content = document.createElement('div');
-        content.className = 'course-content';
+		const continueBtn = document.createElement('button')
+		continueBtn.className = 'btn btn-primary continue-btn'
+		continueBtn.textContent = 'Продолжить обучение'
+		continueBtn.addEventListener('click', () => {
+			this.loadNextUncompletedModule()
+		})
 
-        const contentHeader = document.createElement('div');
-        contentHeader.className = 'content-header';
+		const testBtn = document.createElement('button')
+		testBtn.className = 'btn btn-secondary test-btn'
+		testBtn.textContent = 'Пройти тест'
+		testBtn.addEventListener('click', () => {
+			this.startTest()
+		})
 
-        const navigation = document.createElement('div');
-        navigation.className = 'module-navigation';
+		progressBar.appendChild(progressFill)
+		section.appendChild(progressText)
+		section.appendChild(progressBar)
+		section.appendChild(continueBtn)
 
-        const prevBtn = document.createElement('button');
-        prevBtn.className = 'btn btn-secondary prev-btn';
-        prevBtn.innerHTML = '← Предыдущий';
-        prevBtn.addEventListener('click', () => {
-            this.loadModule(this.currentModuleIndex - 1);
-        });
+		if (completedModules === this.currentCourse.modules.length) {
+			section.appendChild(testBtn)
+		}
 
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'btn btn-primary next-btn';
-        nextBtn.innerHTML = 'Следующий →';
-        nextBtn.addEventListener('click', () => {
-            this.loadModule(this.currentModuleIndex + 1);
-        });
+		return section
+	}
 
-        const moduleContent = document.createElement('div');
-        moduleContent.className = 'module-content-area';
-        moduleContent.id = 'moduleContent';
+	createContentArea() {
+		const content = document.createElement('div')
+		content.className = 'course-content'
 
-        navigation.appendChild(prevBtn);
-        navigation.appendChild(nextBtn);
-        contentHeader.appendChild(navigation);
-        content.appendChild(contentHeader);
-        content.appendChild(moduleContent);
+		const contentHeader = document.createElement('div')
+		contentHeader.className = 'content-header'
 
-        return content;
-    }
+		const navigation = document.createElement('div')
+		navigation.className = 'module-navigation'
 
-    loadModule(moduleIndex) {
-        if (moduleIndex < 0 || moduleIndex >= this.currentCourse.modules.length) {
-            return;
-        }
+		const prevBtn = document.createElement('button')
+		prevBtn.className = 'btn btn-secondary prev-btn'
+		prevBtn.innerHTML = '← Предыдущий'
+		prevBtn.addEventListener('click', () => {
+			this.loadModule(this.currentModuleIndex - 1)
+		})
 
-        this.currentModuleIndex = moduleIndex;
-        const module = this.currentCourse.modules[moduleIndex];
-        const contentArea = document.getElementById('moduleContent');
+		const nextBtn = document.createElement('button')
+		nextBtn.className = 'btn btn-primary next-btn'
+		nextBtn.innerHTML = 'Следующий →'
+		nextBtn.addEventListener('click', () => {
+			this.loadModule(this.currentModuleIndex + 1)
+		})
 
-        // Очищаем контент
-        while (contentArea.firstChild) {
-            contentArea.removeChild(contentArea.firstChild);
-        }
+		const moduleContent = document.createElement('div')
+		moduleContent.className = 'module-content-area'
+		moduleContent.id = 'moduleContent'
 
-        // Создаем заголовок модуля
-        const moduleHeader = document.createElement('div');
-        moduleHeader.className = 'module-header';
+		navigation.appendChild(prevBtn)
+		navigation.appendChild(nextBtn)
+		contentHeader.appendChild(navigation)
+		content.appendChild(contentHeader)
+		content.appendChild(moduleContent)
 
-        const title = document.createElement('h2');
-        title.className = 'module-content-title';
-        title.textContent = module.title;
+		return content
+	}
 
-        const meta = document.createElement('div');
-        meta.className = 'module-content-meta';
-        meta.textContent = `${module.type === 'video' ? 'Видео' : 'Текст'} • ${module.duration} • ${module.completed ? 'Пройдено' : 'Не пройдено'}`;
+	loadModule(moduleIndex) {
+		if (moduleIndex < 0 || moduleIndex >= this.currentCourse.modules.length) {
+			return
+		}
 
-        moduleHeader.appendChild(title);
-        moduleHeader.appendChild(meta);
-        contentArea.appendChild(moduleHeader);
+		this.currentModuleIndex = moduleIndex
+		const module = this.currentCourse.modules[moduleIndex]
+		const contentArea = document.getElementById('moduleContent')
 
-        // Создаем контент модуля
-        const content = document.createElement('div');
-        content.className = 'module-main-content';
+		// Очищаем контент
+		while (contentArea.firstChild) {
+			contentArea.removeChild(contentArea.firstChild)
+		}
 
-        if (module.type === 'video') {
-            const videoPlaceholder = document.createElement('div');
-            videoPlaceholder.className = 'video-placeholder';
-            videoPlaceholder.innerHTML = `
+		// Создаем заголовок модуля
+		const moduleHeader = document.createElement('div')
+		moduleHeader.className = 'module-header'
+
+		const title = document.createElement('h2')
+		title.className = 'module-content-title'
+		title.textContent = module.title
+
+		const meta = document.createElement('div')
+		meta.className = 'module-content-meta'
+		meta.textContent = `${module.type === 'video' ? 'Видео' : 'Текст'} • ${
+			module.duration
+		} • ${module.completed ? 'Пройдено' : 'Не пройдено'}`
+
+		moduleHeader.appendChild(title)
+		moduleHeader.appendChild(meta)
+		contentArea.appendChild(moduleHeader)
+
+		// Создаем контент модуля
+		const content = document.createElement('div')
+		content.className = 'module-main-content'
+
+		if (module.type === 'video') {
+			const videoPlaceholder = document.createElement('div')
+			videoPlaceholder.className = 'video-placeholder'
+			videoPlaceholder.innerHTML = `
                 <div class="video-player">
                     <div class="video-thumbnail">
                         <div class="play-button">▶</div>
@@ -239,74 +253,78 @@ class CoursePlayer {
                         <p>Длительность: ${module.duration}</p>
                     </div>
                 </div>
-            `;
-            content.appendChild(videoPlaceholder);
-        }
+            `
+			content.appendChild(videoPlaceholder)
+		}
 
-        const textContent = document.createElement('div');
-        textContent.className = 'module-text-content';
-        textContent.textContent = module.content;
-        content.appendChild(textContent);
+		const textContent = document.createElement('div')
+		textContent.className = 'module-text-content'
+		textContent.textContent = module.content
+		content.appendChild(textContent)
 
-        // Кнопка завершения модуля
-        if (!module.completed) {
-            const completeBtn = document.createElement('button');
-            completeBtn.className = 'btn btn-primary complete-btn';
-            completeBtn.textContent = 'Отметить как пройденное';
-            completeBtn.addEventListener('click', () => {
-                this.completeModule(moduleIndex);
-            });
-            content.appendChild(completeBtn);
-        }
+		// Кнопка завершения модуля
+		if (!module.completed) {
+			const completeBtn = document.createElement('button')
+			completeBtn.className = 'btn btn-primary complete-btn'
+			completeBtn.textContent = 'Отметить как пройденное'
+			completeBtn.addEventListener('click', () => {
+				this.completeModule(moduleIndex)
+			})
+			content.appendChild(completeBtn)
+		}
 
-        contentArea.appendChild(content);
+		contentArea.appendChild(content)
 
-        // Обновляем активный модуль в сайдбаре
-        this.updateActiveModule();
-    }
+		// Обновляем активный модуль в сайдбаре
+		this.updateActiveModule()
+	}
 
-    completeModule(moduleIndex) {
-        this.currentCourse.modules[moduleIndex].completed = true;
-        
-        // Обновляем данные в localStorage
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        const courseIndex = userData.courses.findIndex(c => c.id === this.currentCourse.id);
-        userData.courses[courseIndex] = this.currentCourse;
-        localStorage.setItem('userData', JSON.stringify(userData));
+	completeModule(moduleIndex) {
+		this.currentCourse.modules[moduleIndex].completed = true
 
-        // Показываем уведомление
-        NotificationManager.showTempNotification('Модуль успешно пройден!', 'info');
+		// Обновляем данные в localStorage
+		const userData = JSON.parse(localStorage.getItem('userData'))
+		const courseIndex = userData.courses.findIndex(
+			c => c.id === this.currentCourse.id
+		)
+		userData.courses[courseIndex] = this.currentCourse
+		localStorage.setItem('userData', JSON.stringify(userData))
 
-        // Перезагружаем плеер
-        this.renderCoursePlayer();
-    }
+		// Показываем уведомление
+		NotificationManager.showTempNotification('Модуль успешно пройден!', 'info')
 
-    loadNextUncompletedModule() {
-        const nextModuleIndex = this.currentCourse.modules.findIndex(module => !module.completed);
-        if (nextModuleIndex !== -1) {
-            this.loadModule(nextModuleIndex);
-        }
-    }
+		// Перезагружаем плеер
+		this.renderCoursePlayer()
+	}
 
-    updateActiveModule() {
-        const moduleItems = document.querySelectorAll('.module-item');
-        moduleItems.forEach((item, index) => {
-            item.classList.toggle('active', index === this.currentModuleIndex);
-        });
-    }
+	loadNextUncompletedModule() {
+		const nextModuleIndex = this.currentCourse.modules.findIndex(
+			module => !module.completed
+		)
+		if (nextModuleIndex !== -1) {
+			this.loadModule(nextModuleIndex)
+		}
+	}
 
-    startTest() {
-        // Редирект на страницу тестирования
-        window.location.href = `course-test.html?courseId=${this.currentCourse.id}`;
-    }
+	updateActiveModule() {
+		const moduleItems = document.querySelectorAll('.module-item')
+		moduleItems.forEach((item, index) => {
+			item.classList.toggle('active', index === this.currentModuleIndex)
+		})
+	}
 
-    showError(message) {
-        const container = document.getElementById('coursePlayer');
-        if (container) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.textContent = message;
-            container.appendChild(errorDiv);
-        }
-    }
+	startTest() {
+		// Редирект на страницу тестирования
+		window.location.href = `course-test.html?courseId=${this.currentCourse.id}`
+	}
+
+	showError(message) {
+		const container = document.getElementById('coursePlayer')
+		if (container) {
+			const errorDiv = document.createElement('div')
+			errorDiv.className = 'error-message'
+			errorDiv.textContent = message
+			container.appendChild(errorDiv)
+		}
+	}
 }
