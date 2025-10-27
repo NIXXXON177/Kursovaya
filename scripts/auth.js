@@ -6,8 +6,11 @@ class AuthManager {
     }
 
     init() {
-        // Проверяем, находимся ли мы на странице логина
         if (window.location.pathname.includes('login.html')) {
+            if (AuthManager.checkAuth()) {
+                window.location.href = '../index.html';
+                return;
+            }
             this.setupLoginForm();
         }
     }
@@ -31,27 +34,22 @@ class AuthManager {
         const login = loginInput.value.trim();
         const password = passwordInput.value;
 
-        // Очистка предыдущих ошибок
         if (errorDiv) {
             errorDiv.classList.add('hidden');
         }
 
-        // Базовая валидация
         if (!login || !password) {
             this.showError('Заполните все поля');
             return;
         }
 
         try {
-            // Имитация запроса к серверу
             const authResult = await this.mockAuthRequest(login, password);
             
             if (authResult.success) {
-                // Сохраняем токен и данные пользователя
                 localStorage.setItem('authToken', authResult.token);
                 localStorage.setItem('userData', JSON.stringify(authResult.userData));
                 
-                // Перенаправляем на главную страницу
                 window.location.href = '../index.html';
             } else {
                 this.showError(authResult.message || 'Ошибка авторизации');
@@ -63,10 +61,8 @@ class AuthManager {
     }
 
     async mockAuthRequest(login, password) {
-        // Имитация задержки сети
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Mock данные для демонстрации
         const mockUsers = {
             'petrov': {
                 password: 'password123',
@@ -115,7 +111,6 @@ class AuthManager {
             errorDiv.textContent = message;
             errorDiv.classList.remove('hidden');
         } else {
-            // Создаем элемент для ошибки, если его нет
             const errorElement = document.createElement('div');
             errorElement.className = 'notification error';
             errorElement.innerHTML = `
@@ -130,21 +125,17 @@ class AuthManager {
             if (form) {
                 form.prepend(errorElement);
                 
-                // Автоматическое удаление через 5 секунд
                 setTimeout(() => {
                     errorElement.remove();
                 }, 5000);
             }
         }
     }
-
-    // Проверка авторизации (для других страниц)
     static checkAuth() {
         const token = localStorage.getItem('authToken');
         return !!token;
     }
 
-    // Получение данных пользователя
     static getUserData() {
         try {
             return JSON.parse(localStorage.getItem('userData'));
@@ -154,7 +145,6 @@ class AuthManager {
     }
 }
 
-// Инициализация на странице логина
 if (window.location.pathname.includes('login.html')) {
     document.addEventListener('DOMContentLoaded', () => {
         new AuthManager();
