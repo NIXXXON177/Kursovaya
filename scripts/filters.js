@@ -1,5 +1,3 @@
-// Модуль фильтрации и поиска
-
 class FilterManager {
 	constructor() {
 		this.courses = []
@@ -255,7 +253,6 @@ class FilterManager {
 	}
 }
 
-// Инициализация на странице курсов
 if (window.location.pathname.includes('courses.html')) {
 	document.addEventListener('DOMContentLoaded', () => {
 		if (!AuthManager.checkAuth()) {

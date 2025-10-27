@@ -1,5 +1,3 @@
-// Основной скрипт для загрузки данных и рендеринга интерфейса
-
 class MainApp {
 	constructor() {
 		this.employeeData = null
@@ -7,24 +5,19 @@ class MainApp {
 	}
 
 	async init() {
-		// Проверка авторизации
 		if (!this.checkAuth()) {
 			window.location.href = 'pages/login.html'
 			return
 		}
 
-		// Создаем эффект жидкого стекла
 		this.createGlassEffect()
 
-		// Загрузка данных
 		await this.loadEmployeeData()
 
-		// Рендеринг интерфейса
 		this.renderEmployeeInfo()
 		this.renderProgress()
 		this.renderActiveCourses()
 
-		// Инициализация уведомлений
 		if (typeof NotificationManager !== 'undefined') {
 			new NotificationManager(this.employeeData)
 		}
@@ -196,7 +189,6 @@ class MainApp {
 
 		const { employee } = this.employeeData
 
-		// Очищаем контейнер
 		while (container.firstChild) {
 			container.removeChild(container.firstChild)
 		}
@@ -241,7 +233,7 @@ class MainApp {
 
 		const activeCourses = this.employeeData.courses.slice(0, 3)
 
-		// Очищаем контейнер
+	
 		while (container.firstChild) {
 			container.removeChild(container.firstChild)
 		}
@@ -380,7 +372,6 @@ class MainApp {
 	}
 }
 
-// Инициализация приложения когда DOM загружен
 document.addEventListener('DOMContentLoaded', () => {
 	new MainApp()
 

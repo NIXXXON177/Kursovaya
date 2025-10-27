@@ -1,4 +1,3 @@
-// scripts/course-player.js
 class CoursePlayer {
 	constructor() {
 		this.currentCourse = null
@@ -29,16 +28,13 @@ class CoursePlayer {
 		const container = document.getElementById('coursePlayer')
 		if (!container || !this.currentCourse) return
 
-		// Очищаем контейнер
 		while (container.firstChild) {
 			container.removeChild(container.firstChild)
 		}
 
-		// Создаем основную структуру
 		const playerLayout = this.createPlayerLayout()
 		container.appendChild(playerLayout)
 
-		// Загружаем первый модуль
 		this.loadModule(this.currentModuleIndex)
 	}
 
@@ -213,12 +209,10 @@ class CoursePlayer {
 		const module = this.currentCourse.modules[moduleIndex]
 		const contentArea = document.getElementById('moduleContent')
 
-		// Очищаем контент
 		while (contentArea.firstChild) {
 			contentArea.removeChild(contentArea.firstChild)
 		}
 
-		// Создаем заголовок модуля
 		const moduleHeader = document.createElement('div')
 		moduleHeader.className = 'module-header'
 
@@ -236,7 +230,6 @@ class CoursePlayer {
 		moduleHeader.appendChild(meta)
 		contentArea.appendChild(moduleHeader)
 
-		// Создаем контент модуля
 		const content = document.createElement('div')
 		content.className = 'module-main-content'
 
@@ -262,7 +255,6 @@ class CoursePlayer {
 		textContent.textContent = module.content
 		content.appendChild(textContent)
 
-		// Кнопка завершения модуля
 		if (!module.completed) {
 			const completeBtn = document.createElement('button')
 			completeBtn.className = 'btn btn-primary complete-btn'
@@ -275,14 +267,12 @@ class CoursePlayer {
 
 		contentArea.appendChild(content)
 
-		// Обновляем активный модуль в сайдбаре
 		this.updateActiveModule()
 	}
 
 	completeModule(moduleIndex) {
 		this.currentCourse.modules[moduleIndex].completed = true
 
-		// Обновляем данные в localStorage
 		const userData = JSON.parse(localStorage.getItem('userData'))
 		const courseIndex = userData.courses.findIndex(
 			c => c.id === this.currentCourse.id
@@ -290,10 +280,8 @@ class CoursePlayer {
 		userData.courses[courseIndex] = this.currentCourse
 		localStorage.setItem('userData', JSON.stringify(userData))
 
-		// Показываем уведомление
 		NotificationManager.showTempNotification('Модуль успешно пройден!', 'info')
 
-		// Перезагружаем плеер
 		this.renderCoursePlayer()
 	}
 
@@ -314,7 +302,6 @@ class CoursePlayer {
 	}
 
 	startTest() {
-		// Редирект на страницу тестирования
 		window.location.href = `course-test.html?courseId=${this.currentCourse.id}`
 	}
 

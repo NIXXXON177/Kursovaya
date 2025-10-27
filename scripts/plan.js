@@ -1,4 +1,3 @@
-// Модуль плана обучения
 class PlanManager {
 	constructor() {
 		this.learningPlan = null
@@ -16,7 +15,6 @@ class PlanManager {
 		if (userData && userData.learning_plan) {
 			this.learningPlan = userData.learning_plan
 		} else {
-			// Mock данные для демонстрации
 			this.learningPlan = {
 				upcoming_courses: [
 					{
@@ -73,7 +71,6 @@ class PlanManager {
 				},
 			}
 
-			// Сохраняем в userData для использования
 			if (userData) {
 				userData.learning_plan = this.learningPlan
 				localStorage.setItem('userData', JSON.stringify(userData))
@@ -91,7 +88,6 @@ class PlanManager {
 		const container = document.getElementById('coursesTimeline')
 		if (!container || !this.learningPlan) return
 
-		// Группируем курсы по месяцам
 		const coursesByMonth = this.groupCoursesByMonth(
 			this.learningPlan.upcoming_courses
 		)
@@ -112,7 +108,6 @@ class PlanManager {
 
 		container.innerHTML = timelineHTML
 
-		// Добавляем обработчики событий для карточек курсов
 		this.addCourseCardEventListeners()
 	}
 
@@ -235,7 +230,6 @@ class PlanManager {
 	}
 
 	addCourseCardEventListeners() {
-		// Обработчики для карточек курсов
 		document.querySelectorAll('.course-plan-card').forEach(card => {
 			card.addEventListener('click', e => {
 				if (!e.target.classList.contains('add-to-calendar')) {
@@ -245,7 +239,6 @@ class PlanManager {
 			})
 		})
 
-		// Обработчики для кнопок добавления в календарь
 		document.querySelectorAll('.add-to-calendar').forEach(btn => {
 			btn.addEventListener('click', e => {
 				e.stopPropagation()
@@ -256,7 +249,6 @@ class PlanManager {
 	}
 
 	viewCourseDetails(courseId) {
-		// В реальном приложении здесь был бы переход на страницу курса
 		const course = this.learningPlan.upcoming_courses.find(
 			c => c.id == courseId
 		)
@@ -276,7 +268,6 @@ class PlanManager {
 			c => c.id == courseId
 		)
 		if (course) {
-			// Имитация добавления в календарь
 			if (typeof NotificationManager !== 'undefined') {
 				NotificationManager.showTempNotification(
 					`Курс "${course.title}" добавлен в календарь`,
@@ -288,7 +279,6 @@ class PlanManager {
 		}
 	}
 
-	// Вспомогательные методы
 	formatDate(dateString) {
 		const date = new Date(dateString)
 		return date.toLocaleDateString('ru-RU')

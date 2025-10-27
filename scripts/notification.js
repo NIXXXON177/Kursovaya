@@ -1,5 +1,3 @@
-// Модуль уведомлений
-
 class NotificationManager {
 	constructor(employeeData) {
 		this.employeeData = employeeData
