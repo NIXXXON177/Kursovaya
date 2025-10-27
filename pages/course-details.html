@@ -11,7 +11,7 @@
 		<div id="app">
 			<nav class="navbar">
 				<div class="nav-container">
-					<div class="nav-logo">
+					<!-- <div class="nav-logo"> -->
 						<a href="../index.html"
 							><img src="../img/MainLogo.svg" alt="Logo" class="logo-img" />
 							<span class="logo-text">ТехноЛайн</span></a
@@ -63,7 +63,6 @@
 
 		<script>
 			document.addEventListener('DOMContentLoaded', function () {
-				// Проверка авторизации
 				if (!AuthManager.checkAuth()) {
 					window.location.href = 'login.html'
 					return
