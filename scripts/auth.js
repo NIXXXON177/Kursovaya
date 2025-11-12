@@ -1,152 +1,174 @@
 // Модуль авторизации
 
 class AuthManager {
-    constructor() {
-        this.init();
-    }
+	constructor() {
+		this.init()
+	}
 
-    init() {
-        if (window.location.pathname.includes('login.html')) {
-            if (AuthManager.checkAuth()) {
-                window.location.href = '../index.html';
-                return;
-            }
-            this.setupLoginForm();
-        }
-    }
+	init() {
+		if (window.location.pathname.includes('login.html')) {
+			if (AuthManager.checkAuth()) {
+				window.location.href = '../index.html'
+				return
+			}
+			this.setupLoginForm()
+		}
+	}
 
-    setupLoginForm() {
-        const loginForm = document.getElementById('loginForm');
-        
-        if (loginForm) {
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleLogin();
-            });
-        }
-    }
+	setupLoginForm() {
+		const loginForm = document.getElementById('loginForm')
 
-    async handleLogin() {
-        const loginInput = document.getElementById('login');
-        const passwordInput = document.getElementById('password');
-        const errorDiv = document.getElementById('loginError');
+		if (loginForm) {
+			loginForm.addEventListener('submit', e => {
+				e.preventDefault()
+				this.handleLogin()
+			})
+		}
+	}
 
-        const login = loginInput.value.trim();
-        const password = passwordInput.value;
+	async handleLogin() {
+		const loginInput = document.getElementById('login')
+		const passwordInput = document.getElementById('password')
+		const errorDiv = document.getElementById('loginError')
 
-        if (errorDiv) {
-            errorDiv.classList.add('hidden');
-        }
+		const login = loginInput.value.trim()
+		const password = passwordInput.value
 
-        if (!login || !password) {
-            this.showError('Заполните все поля');
-            return;
-        }
+		if (errorDiv) {
+			errorDiv.classList.add('hidden')
+		}
 
-        try {
-            const authResult = await this.mockAuthRequest(login, password);
-            
-            if (authResult.success) {
-                localStorage.setItem('authToken', authResult.token);
-                localStorage.setItem('userData', JSON.stringify(authResult.userData));
-                
-                window.location.href = '../index.html';
-            } else {
-                this.showError(authResult.message || 'Ошибка авторизации');
-            }
-        } catch (error) {
-            console.error('Ошибка авторизации:', error);
-            this.showError('Ошибка соединения с сервером');
-        }
-    }
+		if (!login || !password) {
+			this.showError('Заполните все поля')
+			return
+		}
 
-    async mockAuthRequest(login, password) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+		try {
+			const authResult = await this.mockAuthRequest(login, password)
 
-        const mockUsers = {
-            'petrov': {
-                password: 'password123',
-                userData: {
-                    employee: {
-                        name: "Петров Алексей Владимирович",
-                        position: "инженер-программист",
-                        department: "IT-отдел",
-                        email: "a.petrov@technoline.ru"
-                    }
-                }
-            },
-            'ivanov': {
-                password: 'password123',
-                userData: {
-                    employee: {
-                        name: "Иванов Сергей Петрович",
-                        position: "ведущий разработчик",
-                        department: "IT-отдел",
-                        email: "s.ivanov@technoline.ru"
-                    }
-                }
-            }
-        };
+			if (authResult.success) {
+				localStorage.setItem('authToken', authResult.token)
+				localStorage.setItem('userData', JSON.stringify(authResult.userData))
 
-        const user = mockUsers[login.toLowerCase()];
+				window.location.href = '../index.html'
+			} else {
+				this.showError(authResult.message || 'Ошибка авторизации')
+			}
+		} catch (error) {
+			console.error('Ошибка авторизации:', error)
+			this.showError('Ошибка соединения с сервером')
+		}
+	}
 
-        if (user && user.password === password) {
-            return {
-                success: true,
-                token: 'mock-jwt-token-' + Date.now(),
-                userData: user.userData
-            };
-        } else {
-            return {
-                success: false,
-                message: 'Неверный логин или пароль'
-            };
-        }
-    }
+	async mockAuthRequest(login, password) {
+		await new Promise(resolve => setTimeout(resolve, 1000))
 
-    showError(message) {
-        const errorDiv = document.getElementById('loginError');
-        
-        if (errorDiv) {
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
-        } else {
-            const errorElement = document.createElement('div');
-            errorElement.className = 'notification error';
-            errorElement.innerHTML = `
+		const mockUsers = {
+			petrov: {
+				password: 'password123',
+				userData: {
+					employee: {
+						name: 'Петров Алексей Владимирович',
+						position: 'инженер-программист',
+						department: 'IT-отдел',
+						email: 'a.petrov@technoline.ru',
+					},
+				},
+			},
+			ivanov: {
+				password: 'password123',
+				userData: {
+					employee: {
+						name: 'Иванов Сергей Петрович',
+						position: 'ведущий разработчик',
+						department: 'IT-отдел',
+						email: 's.ivanov@technoline.ru',
+					},
+				},
+			},
+		}
+
+		const user = mockUsers[login.toLowerCase()]
+
+		if (user && user.password === password) {
+			return {
+				success: true,
+				token: 'mock-jwt-token-' + Date.now(),
+				userData: user.userData,
+			}
+		} else {
+			return {
+				success: false,
+				message: 'Неверный логин или пароль',
+			}
+		}
+	}
+
+	showError(message) {
+		const errorDiv = document.getElementById('loginError')
+
+		if (errorDiv) {
+			errorDiv.textContent = message
+			errorDiv.classList.remove('hidden')
+		} else {
+			const errorElement = document.createElement('div')
+			errorElement.className = 'notification error'
+			errorElement.innerHTML = `
                 <div class="notification-icon">⚠️</div>
                 <div class="notification-content">
                     <h4>Ошибка авторизации</h4>
                     <p>${message}</p>
                 </div>
-            `;
-            
-            const form = document.getElementById('loginForm');
-            if (form) {
-                form.prepend(errorElement);
-                
-                setTimeout(() => {
-                    errorElement.remove();
-                }, 5000);
-            }
-        }
-    }
-    static checkAuth() {
-        const token = localStorage.getItem('authToken');
-        return !!token;
-    }
+            `
 
-    static getUserData() {
-        try {
-            return JSON.parse(localStorage.getItem('userData'));
-        } catch {
-            return null;
-        }
-    }
+			const form = document.getElementById('loginForm')
+			if (form) {
+				form.prepend(errorElement)
+
+				setTimeout(() => {
+					errorElement.remove()
+				}, 5000)
+			}
+		}
+	}
+	static checkAuth() {
+		const token = localStorage.getItem('authToken')
+		return !!token
+	}
+
+	static getUserData() {
+		try {
+			return JSON.parse(localStorage.getItem('userData'))
+		} catch {
+			return null
+		}
+	}
+
+	/**
+	 * Обновляет имя пользователя в header на всех страницах
+	 */
+	static updateUserNameInHeader() {
+		const userData = AuthManager.getUserData()
+		const userNameElement = document.getElementById('userName')
+
+		if (userNameElement && userData && userData.employee) {
+			const fullName = userData.employee.name
+			const nameParts = fullName.split(' ')
+
+			// Форматируем имя в формате "Фамилия И."
+			if (nameParts.length >= 2) {
+				const lastName = nameParts[0]
+				const firstNameInitial = nameParts[1].charAt(0) + '.'
+				userNameElement.textContent = `${lastName} ${firstNameInitial}`
+			} else {
+				userNameElement.textContent = fullName
+			}
+		}
+	}
 }
 
 if (window.location.pathname.includes('login.html')) {
-    document.addEventListener('DOMContentLoaded', () => {
-        new AuthManager();
-    });
+	document.addEventListener('DOMContentLoaded', () => {
+		new AuthManager()
+	})
 }

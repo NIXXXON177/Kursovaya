@@ -12,8 +12,10 @@
 			<nav class="navbar">
 				<div class="nav-container">
 					<div class="nav-logo">
-						<img src="../img/MainLogo.svg" alt="Logo" class="logo-img" />
-						<span class="logo-text">ТехноЛайн</span>
+						<a href="../index.html"
+							><img src="../img/MainLogo.svg" alt="Logo" class="logo-img" />
+							<span class="logo-text">ТехноЛайн</span></a
+						>
 					</div>
 					<div class="nav-menu" id="navMenu">
 						<a href="../index.html" class="nav-link">Личный кабинет</a>
@@ -111,53 +113,9 @@
 		</div>
 
 		<script src="../scripts/auth.js"></script>
+		<script src="../scripts/modal.js"></script>
+		<script src="../scripts/common.js"></script>
 		<script src="../scripts/plan.js"></script>
-
-		<script>
-			document.addEventListener('DOMContentLoaded', function () {
-				// Проверка авторизации
-				if (!AuthManager.checkAuth()) {
-					window.location.href = 'login.html'
-					return
-				}
-
-				// Обновляем имя пользователя
-				const userData = AuthManager.getUserData()
-				if (userData && userData.employee) {
-					const userNameElement = document.getElementById('userName')
-					if (userNameElement) {
-						userNameElement.textContent =
-							userData.employee.name.split(' ')[0] +
-							' ' +
-							userData.employee.name.split(' ')[1]
-					}
-				}
-
-				// Инициализация плана обучения
-				if (typeof PlanManager !== 'undefined') {
-					new PlanManager()
-				}
-
-				// Обработчик выхода
-				const logoutBtn = document.getElementById('logoutBtn')
-				if (logoutBtn) {
-					logoutBtn.addEventListener('click', () => {
-						localStorage.removeItem('authToken')
-						localStorage.removeItem('userData')
-						window.location.href = 'login.html'
-					})
-				}
-
-				// Мобильное меню
-				const navToggle = document.getElementById('navToggle')
-				const navMenu = document.getElementById('navMenu')
-
-				if (navToggle && navMenu) {
-					navToggle.addEventListener('click', () => {
-						navMenu.classList.toggle('active')
-					})
-				}
-			})
-		</script>
+		<script src="../scripts/plan-init.js"></script>
 	</body>
 </html>

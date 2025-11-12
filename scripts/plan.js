@@ -248,22 +248,26 @@ class PlanManager {
 		})
 	}
 
-	viewCourseDetails(courseId) {
+	async viewCourseDetails(courseId) {
 		const course = this.learningPlan.upcoming_courses.find(
 			c => c.id == courseId
 		)
 		if (course) {
-			alert(
-				`Детали курса: ${course.title}\n\nОписание: ${
-					course.description
-				}\nДата: ${this.formatDate(
-					course.scheduled_date
-				)}\nПриоритет: ${this.getPriorityText(course.priority)}`
-			)
+			const message = `Детали курса: ${course.title}\n\nОписание: ${
+				course.description
+			}\nДата: ${this.formatDate(
+				course.scheduled_date
+			)}\nПриоритет: ${this.getPriorityText(course.priority)}`
+
+			if (typeof modal !== 'undefined') {
+				await modal.show(message, 'info', 'Детали курса')
+			} else if (typeof NotificationManager !== 'undefined') {
+				NotificationManager.showTempNotification(message, 'info')
+			}
 		}
 	}
 
-	addToCalendar(courseId) {
+	async addToCalendar(courseId) {
 		const course = this.learningPlan.upcoming_courses.find(
 			c => c.id == courseId
 		)
@@ -273,8 +277,12 @@ class PlanManager {
 					`Курс "${course.title}" добавлен в календарь`,
 					'info'
 				)
-			} else {
-				alert(`Курс "${course.title}" добавлен в календарь!`)
+			} else if (typeof modal !== 'undefined') {
+				await modal.show(
+					`Курс "${course.title}" добавлен в календарь`,
+					'success',
+					'Успешно'
+				)
 			}
 		}
 	}
