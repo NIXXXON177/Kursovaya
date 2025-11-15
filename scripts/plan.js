@@ -154,29 +154,24 @@ class PlanManager {
 			course.id
 		}">
                 <div class="course-plan-main">
-                    <div class="course-plan-header">
-                        <h4 class="course-plan-title">${course.title}</h4>
-                        <div class="course-badges">
-                            <span class="course-badge type-${
+                   	<div class="course-plan-header">
+                       	<h4 class="course-plan-title">${course.title}</h4>
+                       	<div class="course-badges">
+                           	<span class="course-badge type-${
 															course.type
 														}">${this.getTypeText(course.type)}</span>
-                            <span class="course-badge priority-${
+                           	<span class="course-badge priority-${
 															course.priority
 														}">${this.getPriorityText(course.priority)}</span>
-                        </div>
-                    </div>
-                    <p class="course-plan-description">${course.description}</p>
-                    <div class="course-plan-meta">
-                        <span class="meta-item">📅 ${formattedDate}</span>
-                        <span class="meta-item">⏱️ ${course.duration}</span>
-                        <span class="meta-item">📚 ${course.category}</span>
-                    </div>
+                       	</div>
+                   	</div>
+                   	<p class="course-plan-description">${course.description}</p>
+                   	<div class="course-plan-meta">
+                       	<span class="meta-item">📅 ${formattedDate}</span>
+                       	<span class="meta-item">⏱️ ${course.duration}</span>
+                       	<span class="meta-item">📚 ${course.category}</span>
+                   	</div>
                 </div>
-                <button class="btn btn-outline add-to-calendar" data-course-id="${
-									course.id
-								}">
-                    📅 Добавить в календарь
-                </button>
             </div>
         `
 	}
@@ -232,18 +227,8 @@ class PlanManager {
 	addCourseCardEventListeners() {
 		document.querySelectorAll('.course-plan-card').forEach(card => {
 			card.addEventListener('click', e => {
-				if (!e.target.classList.contains('add-to-calendar')) {
-					const courseId = card.dataset.courseId
-					this.viewCourseDetails(courseId)
-				}
-			})
-		})
-
-		document.querySelectorAll('.add-to-calendar').forEach(btn => {
-			btn.addEventListener('click', e => {
-				e.stopPropagation()
-				const courseId = btn.dataset.courseId
-				this.addToCalendar(courseId)
+				const courseId = card.dataset.courseId
+				this.viewCourseDetails(courseId)
 			})
 		})
 	}
@@ -263,26 +248,6 @@ class PlanManager {
 				await modal.show(message, 'info', 'Детали курса')
 			} else if (typeof NotificationManager !== 'undefined') {
 				NotificationManager.showTempNotification(message, 'info')
-			}
-		}
-	}
-
-	async addToCalendar(courseId) {
-		const course = this.learningPlan.upcoming_courses.find(
-			c => c.id == courseId
-		)
-		if (course) {
-			if (typeof NotificationManager !== 'undefined') {
-				NotificationManager.showTempNotification(
-					`Курс "${course.title}" добавлен в календарь`,
-					'info'
-				)
-			} else if (typeof modal !== 'undefined') {
-				await modal.show(
-					`Курс "${course.title}" добавлен в календарь`,
-					'success',
-					'Успешно'
-				)
 			}
 		}
 	}

@@ -14,12 +14,25 @@ class MainApp {
 
 		await this.loadEmployeeData()
 
+		// Инициализируем уведомления после загрузки данных
+		if (typeof NotificationManager !== 'undefined') {
+			new NotificationManager(this.employeeData)
+		}
+
 		this.renderEmployeeInfo()
 		this.renderProgress()
 		this.renderActiveCourses()
 
-		if (typeof NotificationManager !== 'undefined') {
-			new NotificationManager(this.employeeData)
+		// Lazy load дополнительных скриптов
+		this.loadAdditionalScripts()
+	}
+
+	async loadAdditionalScripts() {
+		try {
+			// Загружаем modal.js асинхронно
+			await loadScript('scripts/modal.js')
+		} catch (error) {
+			console.error('Ошибка загрузки дополнительных скриптов:', error)
 		}
 	}
 
@@ -37,7 +50,7 @@ class MainApp {
 	}
 
 	checkAuth() {
-		const token = localStorage.getItem('authToken')
+		const token = SecurityUtils.getAuthToken()
 		const userData = localStorage.getItem('userData')
 
 		if (!token || !userData) {
@@ -55,6 +68,14 @@ class MainApp {
 
 	async loadEmployeeData() {
 		try {
+			// Сначала пытаемся загрузить данные из localStorage
+			const savedUserData = localStorage.getItem('userData')
+			if (savedUserData) {
+				this.employeeData = JSON.parse(savedUserData)
+				return
+			}
+
+			// Если данных нет, используем демо-данные для Петрова
 			const mockData = {
 				employee: {
 					name: 'Петров Алексей Владимирович',
@@ -69,6 +90,7 @@ class MainApp {
 						status: 'пройден',
 						start_date: '2024-01-15',
 						due_date: '2025-01-15',
+						certificate_date: '2024-01-20',
 						progress: 100,
 						description: 'Курс по основам информационной безопасности',
 						modules: [
@@ -233,7 +255,6 @@ class MainApp {
 
 		const activeCourses = this.employeeData.courses.slice(0, 3)
 
-	
 		while (container.firstChild) {
 			container.removeChild(container.firstChild)
 		}
@@ -378,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const logoutBtn = document.getElementById('logoutBtn')
 	if (logoutBtn) {
 		logoutBtn.addEventListener('click', () => {
-			localStorage.removeItem('authToken')
+			SecurityUtils.clearAuthToken()
 			localStorage.removeItem('userData')
 			window.location.href = 'pages/login.html'
 		})

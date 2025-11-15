@@ -31,15 +31,28 @@ class AuthManager {
 		const passwordInput = document.getElementById('password')
 		const errorDiv = document.getElementById('loginError')
 
-		const login = loginInput.value.trim()
+		const login = SecurityUtils.sanitizeHTML(loginInput.value.trim())
 		const password = passwordInput.value
 
 		if (errorDiv) {
 			errorDiv.classList.add('hidden')
 		}
 
+		// Валидация входных данных
 		if (!login || !password) {
 			this.showError('Заполните все поля')
+			return
+		}
+
+		if (!SecurityUtils.validateLogin(login)) {
+			this.showError(
+				'Логин должен содержать 3-20 символов (буквы, цифры, подчеркивание)'
+			)
+			return
+		}
+
+		if (!SecurityUtils.validatePassword(password)) {
+			this.showError('Пароль должен содержать минимум 6 символов')
 			return
 		}
 
@@ -47,8 +60,12 @@ class AuthManager {
 			const authResult = await this.mockAuthRequest(login, password)
 
 			if (authResult.success) {
-				localStorage.setItem('authToken', authResult.token)
-				localStorage.setItem('userData', JSON.stringify(authResult.userData))
+				// Безопасное хранение токена
+				SecurityUtils.setAuthToken(authResult.token)
+				localStorage.setItem(
+					'userData',
+					JSON.stringify(SecurityUtils.sanitizeObject(authResult.userData))
+				)
 
 				window.location.href = '../index.html'
 			} else {

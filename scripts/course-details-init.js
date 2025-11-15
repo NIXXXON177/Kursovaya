@@ -117,6 +117,14 @@ function createCourseInfoGrid(course) {
 		{ title: 'Статус сертификата', value: getCertificateStatus(course) },
 	]
 
+	// Добавить дату получения сертификата, если курс пройден
+	if (course.status === 'пройден' && course.certificate_date) {
+		items.push({
+			title: 'Дата получения сертификата',
+			value: formatDate(course.certificate_date),
+		})
+	}
+
 	items.forEach(item => {
 		const infoItem = document.createElement('div')
 		infoItem.className = 'info-item'
@@ -174,8 +182,7 @@ function createCourseDescription(course) {
 	title.textContent = 'Описание курса'
 
 	const description = document.createElement('p')
-	description.textContent =
-		course.description || 'Описание курса отсутствует.'
+	description.textContent = course.description || 'Описание курса отсутствует.'
 
 	container.appendChild(title)
 	container.appendChild(description)
@@ -239,9 +246,7 @@ function createCourseModulesPreview(course) {
 
 function createModulePreviewItem(module, index) {
 	const item = document.createElement('div')
-	item.className = `module-preview-item ${
-		module.completed ? 'completed' : ''
-	}`
+	item.className = `module-preview-item ${module.completed ? 'completed' : ''}`
 	item.style.cssText =
 		'display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 0.5rem;'
 
@@ -264,9 +269,9 @@ function createModulePreviewItem(module, index) {
 	const moduleMeta = document.createElement('div')
 	moduleMeta.style.fontSize = '0.9rem'
 	moduleMeta.style.color = 'var(--text-muted)'
-	moduleMeta.textContent = `${
-		module.type === 'video' ? 'Видео' : 'Текст'
-	} • ${module.duration} ${module.completed ? '• Пройдено' : ''}`
+	moduleMeta.textContent = `${module.type === 'video' ? 'Видео' : 'Текст'} • ${
+		module.duration
+	} ${module.completed ? '• Пройдено' : ''}`
 
 	content.appendChild(moduleTitle)
 	content.appendChild(moduleMeta)
@@ -318,11 +323,7 @@ function createMaterialItem(material) {
 	const icon = document.createElement('div')
 	icon.className = `material-icon ${material.type}`
 	icon.textContent =
-		material.type === 'pdf'
-			? '📄'
-			: material.type === 'video'
-			? '🎥'
-			: '🔗'
+		material.type === 'pdf' ? '📄' : material.type === 'video' ? '🎥' : '🔗'
 
 	const content = document.createElement('div')
 	content.className = 'material-content'
@@ -507,9 +508,9 @@ function createPlayerSidebar() {
 
 function createPlayerModuleItem(module, index) {
 	const item = document.createElement('div')
-	item.className = `player-module-item ${
-		module.completed ? 'completed' : ''
-	} ${index === currentModuleIndex ? 'active' : ''}`
+	item.className = `player-module-item ${module.completed ? 'completed' : ''} ${
+		index === currentModuleIndex ? 'active' : ''
+	}`
 	item.style.cssText =
 		'display: flex; align-items: flex-start; gap: 1rem; padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; cursor: pointer; transition: all 0.3s ease; border: 1px solid transparent;'
 
@@ -559,9 +560,7 @@ function createPlayerProgressSection() {
 	section.style.borderTop = '1px solid var(--glass-border)'
 	section.style.marginTop = '1rem'
 
-	const completedModules = currentCourse.modules.filter(
-		m => m.completed
-	).length
+	const completedModules = currentCourse.modules.filter(m => m.completed).length
 	const totalModules = currentCourse.modules.length
 
 	const progressText = document.createElement('div')
@@ -679,15 +678,30 @@ function loadPlayerModule(moduleIndex) {
 	textContent.textContent = module.content
 	content.appendChild(textContent)
 
-	// Кнопка завершения модуля
+	// Если модуль не пройден, показываем тест или кнопку завершения
 	if (!module.completed) {
-		const completeBtn = document.createElement('button')
-		completeBtn.className = 'btn btn-primary'
-		completeBtn.textContent = 'Отметить как пройденное'
-		completeBtn.addEventListener('click', () => {
-			completePlayerModule(moduleIndex)
-		})
-		content.appendChild(completeBtn)
+		if (
+			module.test &&
+			module.test.questions &&
+			module.test.questions.length > 0
+		) {
+			const testContainer = createModuleTest(module.test, moduleIndex)
+			content.appendChild(testContainer)
+		} else {
+			const completeBtn = document.createElement('button')
+			completeBtn.className = 'btn btn-primary'
+			completeBtn.textContent = 'Отметить как пройденное'
+			completeBtn.addEventListener('click', () => {
+				completePlayerModule(moduleIndex)
+			})
+			content.appendChild(completeBtn)
+		}
+	} else {
+		const completedMsg = document.createElement('div')
+		completedMsg.style.cssText =
+			'background: rgba(76, 175, 80, 0.1); border: 1px solid #4caf50; border-radius: 8px; padding: 1rem; color: #4caf50; text-align: center;'
+		completedMsg.textContent = 'Модуль пройден ✅'
+		content.appendChild(completedMsg)
 	}
 
 	contentArea.appendChild(content)
@@ -699,25 +713,177 @@ function loadPlayerModule(moduleIndex) {
 function completePlayerModule(moduleIndex) {
 	currentCourse.modules[moduleIndex].completed = true
 
+	// Рассчитываем новый прогресс курса
+	const completedModules = currentCourse.modules.filter(m => m.completed).length
+	const totalModules = currentCourse.modules.length
+	const newProgress = Math.round((completedModules / totalModules) * 100)
+
+	// Обновляем статус курса
+	let newStatus = currentCourse.status
+	if (newProgress === 100) {
+		newStatus = 'пройден'
+	} else if (newProgress > 0) {
+		newStatus = 'в процессе'
+	}
+
+	currentCourse.progress = newProgress
+	currentCourse.status = newStatus
+
 	// Обновляем данные в localStorage
 	const userData = JSON.parse(localStorage.getItem('userData'))
-	const courseIndex = userData.courses.findIndex(
-		c => c.id === currentCourse.id
-	)
+	const courseIndex = userData.courses.findIndex(c => c.id === currentCourse.id)
 	userData.courses[courseIndex] = currentCourse
+
+	// Обновляем общий прогресс пользователя
+	const totalCourses = userData.courses.length
+	const completedCourses = userData.courses.filter(
+		c => c.status === 'пройден'
+	).length
+	const totalProgress = userData.courses.reduce(
+		(sum, course) => sum + course.progress,
+		0
+	)
+	userData.progress = Math.round(totalProgress / totalCourses)
+
 	localStorage.setItem('userData', JSON.stringify(userData))
 
 	// Показываем уведомление
+	let message = 'Модуль успешно пройден!'
+	if (newProgress === 100) {
+		message = 'Поздравляем! Курс полностью пройден! 🎉'
+	}
 	if (typeof NotificationManager !== 'undefined') {
 		NotificationManager.showTempNotification(
-			'Модуль успешно пройден!',
-			'info'
+			message,
+			newProgress === 100 ? 'success' : 'info'
 		)
 	}
 
 	// Перезагружаем плеер
 	const container = document.getElementById('courseDetails')
 	renderCoursePlayer(container)
+}
+
+function createModuleTest(test, moduleIndex) {
+	const testContainer = document.createElement('div')
+	testContainer.className = 'module-test'
+	testContainer.style.cssText =
+		'background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 8px; border: 1px solid var(--glass-border); margin-bottom: 2rem;'
+
+	const testTitle = document.createElement('h3')
+	testTitle.textContent = 'Тест по модулю'
+	testTitle.style.cssText = 'color: var(--text-light); margin-bottom: 1.5rem;'
+	testContainer.appendChild(testTitle)
+
+	const questionsContainer = document.createElement('div')
+	questionsContainer.className = 'test-questions'
+
+	test.questions.forEach((question, qIndex) => {
+		const questionDiv = document.createElement('div')
+		questionDiv.className = 'test-question'
+		questionDiv.style.marginBottom = '2rem'
+
+		const questionText = document.createElement('p')
+		questionText.textContent = `${qIndex + 1}. ${question.question}`
+		questionText.style.cssText =
+			'color: var(--text-light); font-weight: 500; margin-bottom: 1rem;'
+		questionDiv.appendChild(questionText)
+
+		const optionsDiv = document.createElement('div')
+		optionsDiv.className = 'test-options'
+
+		question.options.forEach((option, oIndex) => {
+			const optionLabel = document.createElement('label')
+			optionLabel.style.cssText =
+				'display: block; margin-bottom: 0.5rem; cursor: pointer;'
+
+			const optionInput = document.createElement('input')
+			optionInput.type = 'radio'
+			optionInput.name = `question-${qIndex}`
+			optionInput.value = oIndex
+			optionInput.style.marginRight = '0.5rem'
+
+			const optionText = document.createTextNode(option)
+
+			optionLabel.appendChild(optionInput)
+			optionLabel.appendChild(optionText)
+			optionsDiv.appendChild(optionLabel)
+		})
+
+		questionDiv.appendChild(optionsDiv)
+		questionsContainer.appendChild(questionDiv)
+	})
+
+	testContainer.appendChild(questionsContainer)
+
+	const submitBtn = document.createElement('button')
+	submitBtn.className = 'btn btn-primary'
+	submitBtn.textContent = 'Проверить ответы'
+	submitBtn.addEventListener('click', () => {
+		checkTestAnswers(test, moduleIndex, testContainer)
+	})
+	testContainer.appendChild(submitBtn)
+
+	return testContainer
+}
+
+function checkTestAnswers(test, moduleIndex, testContainer) {
+	const questions = test.questions
+	let correctAnswers = 0
+
+	questions.forEach((question, qIndex) => {
+		const selectedOption = document.querySelector(
+			`input[name="question-${qIndex}"]:checked`
+		)
+		if (selectedOption && parseInt(selectedOption.value) === question.correct) {
+			correctAnswers++
+		}
+	})
+
+	const totalQuestions = questions.length
+	const score = Math.round((correctAnswers / totalQuestions) * 100)
+
+	// Очищаем контейнер и показываем результат
+	while (testContainer.firstChild) {
+		testContainer.removeChild(testContainer.firstChild)
+	}
+
+	const resultDiv = document.createElement('div')
+	resultDiv.className = 'test-result'
+	resultDiv.style.cssText = 'text-align: center; padding: 2rem;'
+
+	if (score >= 70) {
+		// Проходной балл 70%
+		resultDiv.innerHTML = `
+			<div style="color: #4caf50; font-size: 2rem; margin-bottom: 1rem;">✅</div>
+			<h3 style="color: var(--text-light); margin-bottom: 1rem;">Тест пройден!</h3>
+			<p style="color: var(--text-muted); margin-bottom: 2rem;">Правильных ответов: ${correctAnswers}/${totalQuestions} (${score}%)</p>
+		`
+
+		const completeBtn = document.createElement('button')
+		completeBtn.className = 'btn btn-primary'
+		completeBtn.textContent = 'Завершить модуль'
+		completeBtn.addEventListener('click', () => {
+			completePlayerModule(moduleIndex)
+		})
+		resultDiv.appendChild(completeBtn)
+	} else {
+		resultDiv.innerHTML = `
+			<div style="color: #f44336; font-size: 2rem; margin-bottom: 1rem;">❌</div>
+			<h3 style="color: var(--text-light); margin-bottom: 1rem;">Тест не пройден</h3>
+			<p style="color: var(--text-muted); margin-bottom: 2rem;">Правильных ответов: ${correctAnswers}/${totalQuestions} (${score}%). Нужно набрать минимум 70%.</p>
+		`
+
+		const retryBtn = document.createElement('button')
+		retryBtn.className = 'btn btn-secondary'
+		retryBtn.textContent = 'Попробовать снова'
+		retryBtn.addEventListener('click', () => {
+			loadPlayerModule(currentModuleIndex) // Перезагрузить модуль
+		})
+		resultDiv.appendChild(retryBtn)
+	}
+
+	testContainer.appendChild(resultDiv)
 }
 
 function updatePlayerActiveModule() {
@@ -789,4 +955,3 @@ document.addEventListener('DOMContentLoaded', function () {
 	// Загрузка деталей курса
 	loadCourseDetails()
 })
-
